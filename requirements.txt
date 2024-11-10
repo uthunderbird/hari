@@ -1,0 +1,9 @@
+langchain-core
+langchain-community
+langchain-openai
+aidial-sdk
+docling
+pydantic
+
+uvicorn
+langchain-chroma

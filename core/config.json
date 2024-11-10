@@ -1,0 +1,24 @@
+{
+  "routes": {},
+  "applications": {
+    "hari": {
+      "displayName": "HARI",
+      "description": "HR AI Assistant that helps to handle big messy CV storages.",
+      "endpoint": "http://hari:5000/openai/deployments/looona/chat/completions"
+    }
+  },
+  "models": {},
+  "keys": {
+    "dial_api_key": {
+      "project": "TEST-PROJECT",
+      "role": "default"
+    }
+  },
+  "roles": {
+    "default": {
+      "limits": {
+        "hari": {}
+      }
+    }
+  }
+}
