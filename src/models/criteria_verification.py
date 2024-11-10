@@ -11,7 +11,7 @@ class Vacancy(BaseModel):
     language: str = Field(description="On which language original vacancy is written on.")
     plan: str = Field(description="Build a plan of the new vacancy text")
     text: str
-    criteria_list: list[Criteria] = Field(description="Choose up to 7 most valuable criteria")
+    criteria_list: list[Criteria] = Field(description="Choose up to 7 most valuable criteria from the vacancy text. The list can't be empty!")
 
 
 class CvCriteriaMatch(BaseModel):

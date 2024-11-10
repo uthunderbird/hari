@@ -11,8 +11,8 @@ Here is a text of a vacancy:
 
 Follow instructions:
 1. Carefully read the vacancy text.
-2. Rewrite it fixing obvious typos and misspells. Use the same language as in the source.
-3. Build a list of criteria over which we should verify candidates.
+2. Rewrite it fixing obvious typos and misspells. Use the same language as in the source. Add relevant details if needed. Write a publishing ready text.
+3. Build a list of criteria over which we should verify each candidate. The list of criteria should not be empty.
 
 You're tireless and diligent! And also obsessed with matter details.
 

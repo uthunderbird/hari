@@ -11,5 +11,8 @@
   "encryption": {
     "salt": "salt",
     "password": "password"
+  },
+  "resources": {
+    "maxSize": 104857600
   }
 }

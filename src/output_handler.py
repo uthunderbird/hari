@@ -36,7 +36,7 @@ def make_output_handler(choice: Choice):
             return
         async for chunk in response_stream:
             if isinstance(chunk, Vacancy):
-                choice.append_content(f"```{chunk.model_dump_json(indent=2)}")
+                choice.append_content(f"{chunk.text}")
                 return chunk
             elif not isinstance(chunk, Yieldable):
                 assert isinstance(chunk, str), (f"Yielded chunk should be either Yieldable "
