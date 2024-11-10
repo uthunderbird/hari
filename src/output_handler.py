@@ -29,6 +29,10 @@ class Attachment(Yieldable):
     reference_type: typing.Optional[str] = None
 
 
+# A hack to deal with history
+history = []
+
+
 def make_output_handler(choice: Choice, root_choice: Choice | None = None):
     @chain
     async def processor(response_stream: typing.AsyncIterable[YieldableT | str | AIMessageChunk] | str):
@@ -48,6 +52,7 @@ def make_output_handler(choice: Choice, root_choice: Choice | None = None):
             if isinstance(chunk, Content):
                 choice.append_content(**chunk.model_dump())
             elif isinstance(chunk, Attachment):
+                history.append(chunk)
                 root_choice.add_attachment(**chunk.model_dump())
             else:
                 raise TypeError(f"Unknown yieldable type: {type(chunk)}")

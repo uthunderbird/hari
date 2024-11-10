@@ -11,7 +11,7 @@ from criteria_builder import criteria_builder
 from criteria_verifier import verify_round
 from cv_validator import validate_cvs
 from doc_parser import parse_directory
-from output_handler import make_output_handler
+from output_handler import make_output_handler, history
 
 CVS_DIR_PATH = "../cvs"
 
@@ -58,6 +58,7 @@ class HariApplication(ChatCompletion):
                     ))
 
         else:
+            context.extend(history)
             model = ChatOpenAI(model='gpt-4o')
             with response.create_single_choice() as choice:
                 await make_output_handler(choice).ainvoke(
@@ -65,6 +66,7 @@ class HariApplication(ChatCompletion):
                         str(context)
                     )
                 )
+        await response.aflush()
 
 
 app = DIALApp()
