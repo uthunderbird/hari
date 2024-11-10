@@ -5,6 +5,7 @@ import uvicorn
 from aidial_sdk import DIALApp
 from aidial_sdk.chat_completion import ChatCompletion, Request, Response
 from langchain_core.output_parsers import StrOutputParser
+from langchain_openai import ChatOpenAI
 
 from criteria_builder import criteria_builder
 from criteria_verifier import verify_round
@@ -30,28 +31,40 @@ class HariApplication(ChatCompletion):
 
         context = copy.deepcopy(request.messages)
 
-        with response.create_single_choice() as choice:
-            text = str(context[-1])
-            with choice.create_stage("Identifying matching criteria") as prepare_stage:
-                vacancy = await make_output_handler(prepare_stage).ainvoke(criteria_builder.astream(text))
-            with choice.create_stage("Loading CVs") as loading_stage:
-                cvs = validate_cvs(
-                    directory_parser=parse_directory,
-                    path=CVS_DIR_PATH,
+        if len(context) < 2:
+
+
+            with response.create_single_choice() as choice:
+                text = str(context[-1])
+                with choice.create_stage("Identifying matching criteria") as prepare_stage:
+                    vacancy = await make_output_handler(prepare_stage).ainvoke(criteria_builder.astream(text))
+                with choice.create_stage("Loading CVs") as loading_stage:
+                    cvs = validate_cvs(
+                        directory_parser=parse_directory,
+                        path=CVS_DIR_PATH,
+                    )
+                    loading_stage.append_content(
+                        f"Recursively loaded {len(cvs)} CVs from directory `{CVS_DIR_PATH}`."
+                    )
+                with choice.create_stage("The Game") as game_stage:
+                    await make_output_handler(game_stage, root_choice=choice).ainvoke(verify_round.astream(
+                        {
+                            'vacancy': vacancy,
+                            'cvs': cvs,
+                            'cvs_per_pack': 6,
+                            'top_n_per_pack': 1,
+                            'finalize_on': 5,
+                        }
+                    ))
+
+        else:
+            model = ChatOpenAI(model='gpt-4o')
+            with response.create_single_choice() as choice:
+                await make_output_handler(choice).ainvoke(
+                    model.astream(
+                        str(context)
+                    )
                 )
-                loading_stage.append_content(
-                    f"Recursively loaded {len(cvs)} CVs from directory `{CVS_DIR_PATH}`."
-                )
-            with choice.create_stage("The Game") as game_stage:
-                await make_output_handler(game_stage).ainvoke(verify_round.astream(
-                    {
-                        'vacancy': vacancy,
-                        'cvs': cvs,
-                        'cvs_per_pack': 13,
-                        'top_n_per_pack': 3,
-                        'finalize_on': 5,
-                    }
-                ))
 
 
 app = DIALApp()

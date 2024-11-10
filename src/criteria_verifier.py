@@ -63,7 +63,7 @@ async def verify_round(
 
     while len(participants) > finalize_on * 2:
         final_cvs = []
-        yield f"Round #{round_no}: {len(participants)} participants in the game.\n"
+        yield f"Round #{round_no}: {len(participants)} participants in the game.\n\n"
         packs_amount = len(participants) / cvs_per_pack
         winners = []
         tasks = []
@@ -94,14 +94,24 @@ async def verify_round(
         round_no += 1
     result = sorted(final_cvs, key=lambda x: -x.matching_rate)[:finalize_on]
     for resume in result:
-        file_path = Path(resume.file_path)
-        if file_path.suffix == '.pdf':
-            mimetype = 'application/pdf'
-        elif file_path.suffix == '.docx':
-            mimetype = 'application/msword'
-        else:
-            raise ValueError(f"Unknown exception of a file `{file_path}`")
-        yield Attachment(type=mimetype, name=file_path.name, data=b64encode(file_path.read_bytes()).decode())
+        # data = b64encode(file_path.read_bytes())
+        criteria_list = '\n'.join('* ' + x for x in resume.matched_criteria_list)
+        contacts = '\n'.join('* ' + x for x in resume.contacts) if resume.contacts else None
+        contacts = f"\n\n#### Contacts \n{contacts}" if contacts else ""
+        pros = '\n'.join('* ' + x for x in resume.pros)
+        cons = '\n'.join('* ' + x for x in resume.cons)
+        markdown = (f"### {resume.candidate_name}"
+                    f"\n\n**CV file path:** `{resume.file_path}`"
+                    f"\n\n**Matching rate:** {resume.matching_rate}"
+                    f"\n\n{criteria_list}"
+                    + contacts +
+                    f"\n\n#### Pros \n{pros}"
+                    f"\n\n#### Cons \n{cons}"
+                    f"\n\n#### Why matched\n{resume.matching_rate_reasoning}"
+                    f"\n\n#### Comparing with other candidates\n{resume.compare_with_other_candidates}"
+                    )
+        yield Attachment(type='text/markdown', title=resume.candidate_name + '.md', data=markdown)
+
 
 if __name__ == '__main__':
     from cv_validator import validate_cvs

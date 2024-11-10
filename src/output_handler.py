@@ -2,6 +2,7 @@ import typing
 from textwrap import indent
 
 from aidial_sdk.chat_completion import Choice
+from langchain_core.messages import AIMessageChunk
 from langchain_core.runnables import chain
 from pydantic import BaseModel
 
@@ -28,13 +29,15 @@ class Attachment(Yieldable):
     reference_type: typing.Optional[str] = None
 
 
-def make_output_handler(choice: Choice):
+def make_output_handler(choice: Choice, root_choice: Choice | None = None):
     @chain
-    async def processor(response_stream: typing.AsyncIterable[YieldableT | str] | str):
+    async def processor(response_stream: typing.AsyncIterable[YieldableT | str | AIMessageChunk] | str):
         if isinstance(response_stream, str):
             choice.append_content(response_stream)
             return
         async for chunk in response_stream:
+            if isinstance(chunk, AIMessageChunk):
+                chunk = chunk.content
             if isinstance(chunk, Vacancy):
                 choice.append_content(f"{chunk.text}")
                 return chunk
@@ -45,7 +48,7 @@ def make_output_handler(choice: Choice):
             if isinstance(chunk, Content):
                 choice.append_content(**chunk.model_dump())
             elif isinstance(chunk, Attachment):
-                choice.add_attachment(**chunk.model_dump())
+                root_choice.add_attachment(**chunk.model_dump())
             else:
                 raise TypeError(f"Unknown yieldable type: {type(chunk)}")
 

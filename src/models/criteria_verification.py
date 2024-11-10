@@ -29,6 +29,8 @@ class CvCriteriaMatch(BaseModel):
     )
     compare_with_other_candidates: str
     matching_rate: int
+    candidate_name: str = "Unknown"
+    contacts: list[str] | None = Field(default_factory=list)
 
 
 class BulkCvCriteriaMatch(BaseModel):
