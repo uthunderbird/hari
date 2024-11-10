@@ -55,4 +55,5 @@ services:
     build: .
     env_file: ".env"
     volumes:
-      - ./:/app
+      - ./cvs/:/app/cvs
+      - ./src/:/app/src

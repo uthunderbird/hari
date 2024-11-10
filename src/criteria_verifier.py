@@ -2,7 +2,7 @@ import asyncio
 import json
 import logging
 import random
-from encodings.base64_codec import base64_encode
+from base64 import b64encode
 from pathlib import Path
 
 from langchain_core.runnables import chain
@@ -47,12 +47,13 @@ async def verify_pack(
 
 @chain
 async def verify_round(
-    vacancy: Vacancy,
-    cvs: dict[str, ProbablyCVWithRawText],
-    cvs_per_pack: int,
-    top_n_per_pack: int,
-    finalize_on: int,
+    input_: dict,
 ):
+    vacancy: Vacancy = input_['vacancy']
+    cvs: dict[str, ProbablyCVWithRawText] = input_['cvs']
+    cvs_per_pack: int = input_['cvs_per_pack']
+    top_n_per_pack: int = input_['top_n_per_pack']
+    finalize_on: int = input_['finalize_on']
     participants = list(cvs.items())
     random.shuffle(participants)
 
@@ -62,7 +63,7 @@ async def verify_round(
 
     while len(participants) > finalize_on * 2:
         final_cvs = []
-        yield f"Round #{round_no}, {len(participants)} participants in the game."
+        yield f"Round #{round_no}: {len(participants)} participants in the game.\n"
         packs_amount = len(participants) / cvs_per_pack
         winners = []
         tasks = []
@@ -94,7 +95,13 @@ async def verify_round(
     result = sorted(final_cvs, key=lambda x: -x.matching_rate)[:finalize_on]
     for resume in result:
         file_path = Path(resume.file_path)
-        yield Attachment(type='application/pdf', name=file_path.name, data=base64_encode(file_path.read_bytes()))
+        if file_path.suffix == '.pdf':
+            mimetype = 'application/pdf'
+        elif file_path.suffix == '.docx':
+            mimetype = 'application/msword'
+        else:
+            raise ValueError(f"Unknown exception of a file `{file_path}`")
+        yield Attachment(type=mimetype, name=file_path.name, data=b64encode(file_path.read_bytes()).decode())
 
 if __name__ == '__main__':
     from cv_validator import validate_cvs

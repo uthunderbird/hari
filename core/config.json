@@ -4,7 +4,7 @@
     "hari": {
       "displayName": "HARI",
       "description": "HR AI Assistant that helps to handle big messy CV storages.",
-      "endpoint": "http://hari:5000/openai/deployments/looona/chat/completions"
+      "endpoint": "http://hari:5000/openai/deployments/hari/chat/completions"
     }
   },
   "models": {},

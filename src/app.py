@@ -8,7 +8,11 @@ from langchain_core.output_parsers import StrOutputParser
 
 from criteria_builder import criteria_builder
 from criteria_verifier import verify_round
+from cv_validator import validate_cvs
+from doc_parser import parse_directory
 from output_handler import make_output_handler
+
+CVS_DIR_PATH = "../cvs"
 
 
 # ChatCompletion is an abstract class for applications and model adapters
@@ -29,9 +33,25 @@ class HariApplication(ChatCompletion):
         with response.create_single_choice() as choice:
             text = str(context[-1])
             with choice.create_stage("Identifying matching criteria") as prepare_stage:
-                vacancy = make_output_handler(prepare_stage).ainvoke(criteria_builder.astream(text))
+                vacancy = await make_output_handler(prepare_stage).ainvoke(criteria_builder.astream(text))
+            with choice.create_stage("Loading CVs") as loading_stage:
+                cvs = validate_cvs(
+                    directory_parser=parse_directory,
+                    path=CVS_DIR_PATH,
+                )
+                loading_stage.append_content(
+                    f"Recursively loaded {len(cvs)} CVs from directory `{CVS_DIR_PATH}`."
+                )
             with choice.create_stage("The Game") as game_stage:
-                make_output_handler(game_stage).ainvoke(verify_round.astream(vacancy))
+                await make_output_handler(game_stage).ainvoke(verify_round.astream(
+                    {
+                        'vacancy': vacancy,
+                        'cvs': cvs,
+                        'cvs_per_pack': 13,
+                        'top_n_per_pack': 3,
+                        'finalize_on': 5,
+                    }
+                ))
 
 
 app = DIALApp()
